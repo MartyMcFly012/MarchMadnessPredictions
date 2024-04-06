@@ -1,0 +1,11 @@
+# Ignore Python byte-compiled files
+__pycache__/
+
+# Ignore Visual Studio Code settings (if using VS Code)
+.vscode/
+
+# Ignore Mono IDE settings (if applicable)
+.mono/
+
+# Ignore Python virtual environment
+venv/

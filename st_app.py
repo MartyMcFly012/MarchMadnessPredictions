@@ -80,7 +80,7 @@ with st.sidebar:
         predicted_winner = model.predict_winner(team1, team2)
         st.info(f"Game {i+1}: {predicted_winner.splitlines()[0]} \n{predicted_winner.splitlines()[1]}")
     
-tab1, tab2, tab3 = st.tabs(["Visualize game data", "Simulate games", "Live predictions"])
+tab1, tab2 = st.tabs(["Visualize game data", "Simulate games"])
 
 # Plots the game stats for the latest games
 with tab1:

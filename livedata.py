@@ -37,18 +37,3 @@ day = date.today().day
 year = date.today().year
 
 date_str = f"/{year}/{month}/{day}"
-
-
-producer = KafkaProducer(bootstrap_servers=['kafka_broker_hostname:9092'],
-                        value_serializer=lambda v: json.dumps(v).encode('utf-8'))
-
-topic_name = 'basketball-games'
-
-while True:
-    game_data = get_data(date_str)
-    producer.send(topic_name, value=game_data)
-    print(f"Published game data to Kafka topic: {topic_name}")
-    sleep(120)  # Wait for 2 minutes (120 seconds)
-
-producer.flush()
-producer.close()

@@ -5,7 +5,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
-# Fetches data from historical games
+# Fetches data from historical games and append them to existing games
 def get_games(date):
     url = f"https://www.ncaa.com/march-madness-live/scores/2024/03/{date}?cid=ncaa_live_video_nav"
     response = requests.get(url)
@@ -130,7 +130,7 @@ games.reset_index(drop=True, inplace=True)
 # Will need to change to match month
 games["Date"] = [f"03/{date}/2024" for date in games["Date"]]
 
-og_games = pd.read_csv("games.csv")
+og_games = pd.read_csv("updated_games.csv")
 
 game_data = pd.concat([og_games, games]).reset_index(drop=True).drop(columns="Unnamed: 0")
 game_data.to_csv("updated_games.csv", index=False)

@@ -5,8 +5,8 @@ import st_stats                     # Simulates game outcomes
 import plotly.graph_objects as go
 import random
 import time
-from kafka import KafkaConsumer
-import json
+# from kafka import KafkaConsumer
+# import json
 import altair as alt
 # from datetime import date
 

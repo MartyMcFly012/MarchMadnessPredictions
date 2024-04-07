@@ -89,7 +89,7 @@ with tab1:
     st.header('Visualizing historical games')
     col1_1, col1_2 = st.columns([.8, .2])
     # Convert the 'Date' column to datetime format
-    games['Date'] = pd.to_datetime(games['Date'], format="mixed")
+    games['Date'] = pd.to_datetime(games['Date'])
     team_list = pd.concat([todays_games['Home'], todays_games['Away']]).tolist()
     selected_games = games[games['Team'].isin(team_list)]
     

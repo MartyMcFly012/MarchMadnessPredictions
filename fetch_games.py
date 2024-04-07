@@ -7,7 +7,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 # Fetches data from historical games and append them to existing games
 def get_games(date):
-    url = f"https://www.ncaa.com/march-madness-live/scores/2024/03/{date}?cid=ncaa_live_video_nav"
+    url = f"https://www.ncaa.com/march-madness-live/scores/2024/04/{date}?cid=ncaa_live_video_nav"
     response = requests.get(url)
     html_content = response.text
 
@@ -80,57 +80,59 @@ def get_data(game_id, date):
         df = df.T
         return df
 
-# Uncomment to run the script for several days
-all_games_data = []
-for i in range(30, 32):
-    day = f"03/{i}" # change for correct month
-    games = get_games(i)
-    print("day: " + str(i))
-    if games is not None:
-        all_games_data.append(games)
+def get_games_data(start_day, end_day):
+    all_games_data = []
+    for i in range(start_day, end_day + 1):
+        day = f"04/{i}"  # '04' needs to be changed to the correct month
+        games = get_games(i)  # get_games(i) retrieves the games data for a specific day
+        print("Day: " + str(i))
+        
+        if games is not None:
+            all_games_data.append(games)
+        else:
+            print(f"No games today: 04/{i}")
+            continue
+            
+    if all_games_data:
+        games = pd.concat(all_games_data)
+        
+        # Add necessary columns and calculations
+        games['Game ID'] = games.index
+        games[['Field Goals Made', 'Field Goals Attempted']] = games['Field Goals'].str.split('/', expand=True).astype(int)
+        games[['3 Pointers Made', '3 Pointers Attempted']] = games['3 Pointers'].str.split('/', expand=True).astype(int)
+        games[['Free Throws Made', 'Free Throws Attempted']] = games['Free Throws'].str.split('/', expand=True).astype(int)
+        games['FG%'] = games['Field Goals Made'] / games['Field Goals Attempted']
+        numeric_cols = ['Field Goals Made', 'Field Goals Attempted', '3 Pointers Made', 
+                        '3 Pointers Attempted', 'Free Throws Made', 'Free Throws Attempted', 'Score']
+        games[numeric_cols] = games[numeric_cols].astype(float)
+        games['FT%'] = games['Free Throws Made'] / games['Free Throws Attempted']
+        games['TP%'] = games['3 Pointers Made'] / games['3 Pointers Attempted']
+        row0 = games.groupby('Game ID')['Score'].transform(lambda x: x.shift(-1)).fillna(0)
+        row1 = games.groupby('Game ID')['Score'].transform(lambda x: x.shift(1)).fillna(0)
+        games['Off Score'] = row0 + row1
+        games['Score Diff'] = games['Score'] - games['Off Score']
+        games['Winner'] = games['Score Diff'].apply(lambda x: 1 if x > 0 else 0)
+        games['Away or Home'] = games['Away or Home'].apply(lambda x: 0 if x == "Home team" else 1)
+        games.drop(columns=['Field Goals', '3 Pointers', 'Free Throws'], inplace=True)
+        games.reset_index(drop=True, inplace=True)
+        games['Date'] = [f"04/{date}/2024" for date in games['Date']]
+        
+        # Load existing data from CSV
+        try:
+            og_games = pd.read_csv("updated_games.csv")
+        except FileNotFoundError:
+            og_games = pd.DataFrame()
+        
+        # Identify new games to add to the CSV
+        new_games = games[~games['Game ID'].isin(og_games['Game ID'])]
+        
+        # Concatenate existing and new games data
+        game_data = pd.concat([og_games, new_games]).reset_index(drop=True)
+        
+        # Save updated data to CSV
+        game_data.to_csv("updated_games.csv", index=False)
     else:
-        print("No games today: 03/" + str(i))
-        continue
-games = pd.concat(all_games_data)
+        print("No new games data to process.")
 
-# To runt the data for a specific day and add it to the overall data
-# games = get_games(29)
-
-games['Game ID'] = games.index
-
-games[['Field Goals Made', 'Field Goals Attempted']] = games['Field Goals'].str.split('/', expand=True).astype(int)
-games[['3 Pointers Made', '3 Pointers Attempted']] = games['3 Pointers'].str.split('/', expand=True).astype(int)
-games[['Free Throws Made', 'Free Throws Attempted']] = games['Free Throws'].str.split('/', expand=True).astype(int)
-games["FG%"] = games['Field Goals Made'] / games['Field Goals Attempted']
-
-# Convert the components to float
-numeric_cols = ['Field Goals Made', 'Field Goals Attempted', 
-                '3 Pointers Made', '3 Pointers Attempted', 
-                'Free Throws Made', 'Free Throws Attempted', "Score"]
-games[numeric_cols] = games[numeric_cols].astype(float)
-# Calculate the total score for each team
-games["FG%"] = games['Field Goals Made'] / games['Field Goals Attempted']
-games["FT%"] = games['Free Throws Made'] / games['Free Throws Attempted']
-games["TP%"] = games['3 Pointers Made'] / games['3 Pointers Attempted']
-
-# Add Off Score
-row0 = games.groupby('Game ID')['Score'].transform(lambda x: x.shift(-1)).fillna(0)
-row1 = games.groupby('Game ID')['Score'].transform(lambda x: x.shift(1)).fillna(0)
-games["Off Score"] = row0+row1
-
-# Calculate the score difference for each game
-games['Score Diff'] = (games["Score"] - games["Off Score"])
-games['Winner'] = games['Score Diff'].apply(lambda x: 1 if x > 0 else 0)
-games['Away or Home'] = games['Away or Home'].apply(lambda x: 0 if x == "Home team" else 1)
-games.ffill(inplace=True)
-games.ffill(inplace=True)
-games.drop(columns=['Field Goals','3 Pointers', 'Free Throws'], inplace=True)
-games.reset_index(drop=True, inplace=True)
-
-# Will need to change to match month
-games["Date"] = [f"03/{date}/2024" for date in games["Date"]]
-
-og_games = pd.read_csv("updated_games.csv")
-
-game_data = pd.concat([og_games, games]).reset_index(drop=True).drop(columns="Unnamed: 0")
-game_data.to_csv("updated_games.csv", index=False)
+# Example usage: To get data for one day, enter 'day, (day+1)'
+get_games_data(6, 7)

@@ -30,7 +30,7 @@ def get_model():
 
 @st.cache_data
 def get_todays_games(month, day):
-    return pd.read_csv(f"todays_games_{month}_{day}.csv", index_col=0)
+    return pd.read_csv(f"previous_games/todays_games_{month}_{day}.csv", index_col=0)
 
 games = get_game_data()
 
@@ -52,7 +52,7 @@ mm_model = get_model()
 # day = date.today().day
 # todays_games = get_todays_games(month, day)
 
-samples = ['03/21', '03/22', '03/23', '03/24', '03/28', '03/29', '03/30', '04/06'][::-1]
+samples = ['03/21', '03/22', '03/23', '03/24', '03/28', '03/29', '03/30', '04/06', '04/08'][::-1]
 
 # Displays the latest retrieved games using data gathered with get_teams.py
 with st.sidebar:
@@ -60,7 +60,7 @@ with st.sidebar:
     
     d, m = example.split('/')
 
-    todays_games = pd.read_csv(f"todays_games_{d}_{m}.csv", index_col=0)
+    todays_games = get_todays_games(d,m)
     todays_games_names = pd.concat([todays_games["Away"] + " vs. " + todays_games["Home"]])
 
     games = games.where(games['Date'] < f"{example}/2024").dropna()
@@ -85,14 +85,18 @@ tab1, tab2 = st.tabs(["Visualize game data", "Simulate games"])
 # Plots the game stats for the latest games
 with tab1:
     st.header('Visualizing historical games')
+    col1_1, col1_2 = st.columns([.8, .2])
     # Convert the 'Date' column to datetime format
     games['Date'] = pd.to_datetime(games['Date'], format="mixed")
     team_list = pd.concat([todays_games['Home'], todays_games['Away']]).tolist()
     selected_games = games[games['Team'].isin(team_list)]
+    
 
     # Create a selectbox to choose the column to plot
     columns = ['Score', 'Field Goals Made', '3 Pointers Made', 'Free Throws Made', 'Rebounds', 'Offensive Rebounds', 'Defensive Rebounds', 'Assists', 'Steals', 'Blocks', 'Turnovers', 'Fouls']
-    selected_column = st.selectbox('Select a column to plot', columns)
+    
+    with col1_2:
+        selected_column = st.selectbox('Select a column to plot', columns)
 
     # Create the figure
     fig = go.Figure()
@@ -115,11 +119,12 @@ with tab1:
         hovermode='x',  # Display tooltips only for points closest to the cursor
         showlegend=True,
         height=700,  # Adjust the height of the plot
-        width=900  # Adjust the width of the plot
+        width=800  # Adjust the width of the plot
     )
 
     # Show the interactive plot
-    st.plotly_chart(fig)
+    with col1_1:
+        st.plotly_chart(fig)
 
 # Uses the game statistics to simulate how a live game would play out
 # Future tasks would include streaming this data from real-time games and using it for running the predictions

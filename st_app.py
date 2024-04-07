@@ -52,6 +52,8 @@ mm_model = get_model()
 # day = date.today().day
 # todays_games = get_todays_games(month, day)
 
+st.title(":basketball: March Madness Predictions")
+
 samples = ['03/21', '03/22', '03/23', '03/24', '03/28', '03/29', '03/30', '04/06', '04/08'][::-1]
 
 # Displays the latest retrieved games using data gathered with get_teams.py
@@ -67,10 +69,10 @@ with st.sidebar:
     
     st.header('Todays matches:', divider='rainbow')
     for i in range(len(todays_games)):
-        team1 = todays_games.iloc[i][0]
-        team2 = todays_games.iloc[i][1]
-        team1_image = todays_games.iloc[i][4]
-        team2_image = todays_games.iloc[i][5]
+        team1 = todays_games.iloc[i, 0]
+        team2 = todays_games.iloc[i, 1]
+        team1_image = todays_games.iloc[i, 4]
+        team2_image = todays_games.iloc[i, 5]
         cols = st.columns(2)
         with cols[0]:
             st.image(team1_image, caption=team1, width=50)

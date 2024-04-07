@@ -87,7 +87,7 @@ tab1, tab2 = st.tabs(["Visualize game data", "Simulate games"])
 # Plots the game stats for the latest games
 with tab1:
     st.header('Visualizing historical games')
-    col1_1, col1_2 = st.columns([.8, .2])
+    col1_1, col1_2 = st.columns([.2, .8])
     # Convert the 'Date' column to datetime format
     games['Date'] = pd.to_datetime(games['Date'])
     team_list = pd.concat([todays_games['Home'], todays_games['Away']]).tolist()
@@ -97,7 +97,7 @@ with tab1:
     # Create a selectbox to choose the column to plot
     columns = ['Score', 'Field Goals Made', '3 Pointers Made', 'Free Throws Made', 'Rebounds', 'Offensive Rebounds', 'Defensive Rebounds', 'Assists', 'Steals', 'Blocks', 'Turnovers', 'Fouls']
     
-    with col1_2:
+    with col1_1:
         selected_column = st.selectbox('Select a column to plot', columns)
 
     # Create the figure
@@ -125,7 +125,7 @@ with tab1:
     )
 
     # Show the interactive plot
-    with col1_1:
+    with col1_2:
         st.plotly_chart(fig)
 
 # Uses the game statistics to simulate how a live game would play out
